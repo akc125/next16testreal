@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export const metadata = {
   title: "All Products",
-  description: "Browse all products from FakeStore API",
+  description: "Browse all products from DummyJSON API",
 };
 
 export const dynamic = "force-dynamic";
@@ -13,21 +13,22 @@ type Product = {
   price: number;
   description: string;
   category: string;
-  image: string;
+  thumbnail: string;
 };
 
 export default async function ProductsPage() {
   let products: Product[] = [];
 
   try {
-    const res = await fetch("https://fakestoreapi.com/products", {
-      cache: "no-store", // important for Vercel
+    const res = await fetch("https://dummyjson.com/products", {
+      cache: "no-store", // always fetch fresh data
     });
 
-    if (!res.ok) {
-      console.error("Failed to fetch products, status:", res.status);
+    if (res.ok) {
+      const data = await res.json();
+      products = data.products; // DummyJSON wraps products in "products" field
     } else {
-      products = await res.json();
+      console.error("Failed to fetch products, status:", res.status);
     }
   } catch (err) {
     console.error("Error fetching products:", err);
@@ -39,7 +40,7 @@ export default async function ProductsPage() {
 
       {products.length === 0 ? (
         <p className="text-center text-danger">
-          No products available at the moment. Please try again later.
+          No products available at the moment.
         </p>
       ) : (
         <div className="row g-4">
@@ -47,15 +48,14 @@ export default async function ProductsPage() {
             <div key={product.id} className="col-lg-3 col-md-4 col-sm-6">
               <div className="card h-100 shadow-sm">
                 <Image
-                  src={product.image}
+                  src={product.thumbnail}
                   alt={product.title}
                   width={300}
                   height={300}
                   className="card-img-top p-3"
                   style={{ objectFit: "contain", height: "200px" }}
-                  unoptimized // optional: bypass Next.js image optimization for external images
+                  unoptimized // because images are external
                 />
-
                 <div className="card-body">
                   <h6 className="card-title">{product.title}</h6>
                   <p className="fw-bold mb-1">₹ {product.price}</p>
